@@ -1,6 +1,9 @@
+import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
 
 # Load dataset
@@ -8,22 +11,29 @@ iris = load_iris()
 X = iris.data
 y = iris.target
 
-# Split dataset into train and test sets (80-20)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+# Reduce dimensions for visualization (from 4D to 2D)
+pca = PCA(n_components=2)
+X_2D = pca.fit_transform(X)
 
-# Create KNN classifier with k=3
-model = KNeighborsClassifier(n_neighbors=3)
+# Split dataset
+X_train, X_test, y_train, y_test = train_test_split(X_2D, y, test_size=0.3, random_state=42)
 
-# Train the model
-model.fit(X_train, y_train)
+# Create and train KNN model
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train, y_train)
 
-# Predict on test data
-y_pred = model.predict(X_test)
-
-
-
-# Evaluate the model
+# Predict and evaluate
+y_pred = knn.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
-print("Predicted Labels:", y_pred)
-print("Actual Labels:   ", y_test)
-print("Accuracy:", accuracy)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# Visualization
+plt.figure(figsize=(8, 6))
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_pred, cmap='viridis', edgecolor='k', s=100, marker='o', label='Predicted')
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='viridis', alpha=0.5, s=60, label='Train Data')
+plt.title("KNN Classification on Iris Dataset (2D PCA Projection)")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.legend()
+plt.grid(True)
+plt.show()
